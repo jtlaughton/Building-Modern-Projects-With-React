@@ -1,12 +1,15 @@
 import React, {useEffect} from 'react';
 import TodoListItem from './TodoListItem';
 import NewTodoForm from './NewTodoForm';
+import { getTodos,
+    getTodosLoading,
+    getComplteTodos,
+    getIncompleteTodos } from './selectors';
 import {connect} from 'react-redux';
-import { markTodoAsCompleted, removeTodo } from './actions';
-import { displayAlert, loadTodos } from './thunks';
+import { loadTodos, removeTodoRequest, markTodoAsCompletedRequest } from './thunks';
 import './TodoList.css';
 
-const TodoList = ({todos = [], onRemovePressed, onCompletedPressed, isLoading, startLoadingTodos}) => {
+const TodoList = ({completedTodos, incompleteTodos, onRemovePressed, onCompletedPressed, isLoading, startLoadingTodos}) => {
     useEffect(() => {
         startLoadingTodos();
     }, [])
@@ -16,7 +19,13 @@ const TodoList = ({todos = [], onRemovePressed, onCompletedPressed, isLoading, s
     const content = (
         <div className="list-wrapper">
             <NewTodoForm/>
-            {todos.map(todo => <TodoListItem 
+            <h3>Incomplete: </h3>
+            {incompleteTodos.map(todo => <TodoListItem 
+                todo={todo} 
+                onRemovePressed={onRemovePressed} 
+                onCompletedPressed={onCompletedPressed}/>)}
+            <h3>Completed: </h3>
+            {completedTodos.map(todo => <TodoListItem 
                 todo={todo} 
                 onRemovePressed={onRemovePressed} 
                 onCompletedPressed={onCompletedPressed}/>)}
@@ -27,14 +36,15 @@ const TodoList = ({todos = [], onRemovePressed, onCompletedPressed, isLoading, s
 }
 
 const mapStateToProps = state => ({
-    todos: state.todos,
-    isLoading: state.isLoading
-})
+    completedTodos: getComplteTodos(state),
+    incompleteTodos: getIncompleteTodos(state),
+    isLoading: getTodosLoading(state)
+});
 
 const mapDispatchToProps = dispatch => ({
     startLoadingTodos: () => dispatch(loadTodos()),
-    onRemovePressed: text => dispatch(removeTodo(text)),
-    onCompletedPressed: text => dispatch(markTodoAsCompleted(text)),
-})
+    onRemovePressed: id => dispatch(removeTodoRequest(id)),
+    onCompletedPressed: id => dispatch(markTodoAsCompletedRequest(id)),
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(TodoList);
